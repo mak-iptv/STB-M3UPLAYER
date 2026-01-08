@@ -1,8 +1,7 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 import requests
-import os
 
-app = Flask(__name__, static_folder="../frontend")
+app = Flask(__name__, static_folder="frontend", static_url_path="")
 
 @app.route('/')
 def index():
@@ -14,7 +13,7 @@ def fetch_channels():
     mac = request.args.get('mac')
 
     if not portal or not mac:
-        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
+        return jsonify({"success": False, "error": "Missing portal or MAC"})
 
     headers = {
         "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
@@ -25,20 +24,25 @@ def fetch_channels():
     }
 
     try:
-        # Handshake
+        # 1️⃣ HANDSHAKE
         hs = requests.get(
             f"{portal}/stalker_portal/server/load.php",
             params={"type":"stb","action":"handshake","JsHttpRequest":"1-xml"},
             headers=headers,
             timeout=10
         ).json()
+
         token = hs["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # Get Channels
+        # 2️⃣ GET CHANNELS
         ch = requests.get(
             f"{portal}/stalker_portal/server/load.php",
-            params={"type":"itv","action":"get_all_channels","JsHttpRequest":"1-xml"},
+            params={
+                "type":"itv",
+                "action":"get_all_channels",
+                "JsHttpRequest":"1-xml"
+            },
             headers=headers,
             timeout=10
         ).json()
@@ -51,9 +55,11 @@ def fetch_channels():
             }
             for c in ch["js"]["data"]
         ]
+
         return jsonify({"success": True, "channels": channels})
+
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    app.run(host="0.0.0.0", port=10000)
