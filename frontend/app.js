@@ -16,52 +16,42 @@ function fetchChannels() {
     if (!url || !mac) return alert("Enter Portal URL & MAC");
 
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            channels = data.channels;
-            render();
-            showCategories();
-            alert("Channels loaded successfully!");
-        } else {
-            alert("Failed to fetch channels: " + data.error);
-        }
-    }).catch(err => {
-        console.error(err);
-        alert("Error fetching channels");
-    });
+        .then(res => res.json())
+        .then(data => {
+            if(data.success){
+                channels = data.channels;
+                render();
+                showCategories();
+                alert("Channels loaded!");
+            } else alert("Error: " + data.error);
+        }).catch(err => {
+            console.error(err);
+            alert("Error fetching channels");
+        });
 }
 
-function render(list = channels) {
+function render(list = channels){
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
     list.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = `<div class="star" onclick="fav(event,'${c.name}')">${favorites.includes(c.name)?"⭐":"☆"}</div>
-                              <div>${c.name}</div>`;
+            card.innerHTML = `<div class="star" onclick="fav(event,'${c.name}')">${favorites.includes(c.name)?"⭐":"☆"}</div><div>${c.name}</div>`;
             card.onclick = () => play(c);
             grid.appendChild(card);
         });
 }
 
-function play(c) {
-    if (Hls.isSupported()) {
+function play(c){
+    if(Hls.isSupported()){
         const hls = new Hls();
         hls.loadSource(c.url);
         hls.attachMedia(player);
     } else player.src = c.url;
 }
 
-function addHistory(name) {
-    history.unshift(name);
-    history = [...new Set(history)].slice(0,10);
-    localStorage.setItem("hist", JSON.stringify(history));
-    updateHistory();
-}
-
-function fav(e,name) {
+function fav(e,name){
     e.stopPropagation();
     favorites.includes(name) ? favorites = favorites.filter(f=>f!=name) : favorites.push(name);
     localStorage.setItem("fav", JSON.stringify(favorites));
@@ -69,39 +59,40 @@ function fav(e,name) {
     render();
 }
 
-function updateFav() {
+function updateFav(){
     favList.innerHTML = "";
-    favorites.forEach(f => {
+    favorites.forEach(f=>{
         const div = document.createElement("div");
         div.innerText = f;
-        div.onclick = () => {
-            const c = channels.find(ch=>ch.name===f);
-            if(c) play(c);
-        };
+        div.onclick = () => { const c = channels.find(ch=>ch.name===f); if(c) play(c); };
         favList.appendChild(div);
     });
 }
 
-function updateHistory() {
+function addHistory(name){
+    history.unshift(name);
+    history = [...new Set(history)].slice(0,10);
+    localStorage.setItem("hist", JSON.stringify(history));
+    updateHistory();
+}
+
+function updateHistory(){
     histList.innerHTML = "";
-    history.forEach(h => {
+    history.forEach(h=>{
         const div = document.createElement("div");
         div.innerText = h;
-        div.onclick = () => {
-            const c = channels.find(ch=>ch.name===h);
-            if(c) play(c);
-        };
+        div.onclick = () => { const c = channels.find(ch=>ch.name===h); if(c) play(c); };
         histList.appendChild(div);
     });
 }
 
-function showCategories() {
+function showCategories(){
     cats.innerHTML = "";
-    const unique = [...new Set(channels.map(c => c.category))];
-    unique.forEach(cat => {
+    const unique = [...new Set(channels.map(c=>c.category))];
+    unique.forEach(cat=>{
         const div = document.createElement("div");
         div.innerText = cat;
-        div.onclick = () => render(channels.filter(c => c.category===cat));
+        div.onclick = ()=> render(channels.filter(c=>c.category===cat));
         cats.appendChild(div);
     });
 }
