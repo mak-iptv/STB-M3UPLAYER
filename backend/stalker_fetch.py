@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 def get_channels(portal: str, mac: str):
-    portal = portal.strip().rstrip('/')  # heq hapësirat dhe slash të tepërt
+    portal = portal.strip().rstrip('/')
     mac = mac.strip()
 
     headers = {
@@ -16,7 +16,7 @@ def get_channels(portal: str, mac: str):
     }
 
     try:
-        # 1️⃣ Handshake për të marrë token
+        # 1️⃣ Handshake
         hs_resp = requests.get(
             f"{portal}/portal.php",
             params={"type":"stb", "action":"handshake", "JsHttpRequest":"1-xml"},
@@ -25,7 +25,6 @@ def get_channels(portal: str, mac: str):
         )
         hs_resp.raise_for_status()
         hs_json = hs_resp.json()
-
         token = hs_json["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
