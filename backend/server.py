@@ -1,22 +1,26 @@
-from flask import Flask, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory
+import requests
 import os
 
-# Root folder frontend
-FRONTEND_FOLDER = os.path.join(os.path.dirname(__file__), "../frontend")
-
-app = Flask(__name__, static_folder=FRONTEND_FOLDER)
+app = Flask(__name__, static_folder="../frontend")
 
 @app.route("/")
 def index():
-    return send_from_directory(FRONTEND_FOLDER, "index.html")
+    return send_from_directory(app.static_folder, "index.html")
 
-@app.route("/channels.json")
-def channels():
-    return send_from_directory(FRONTEND_FOLDER, "channels.json")
+@app.route("/fetch_channels")
+def fetch_channels():
+    portal = request.args.get("portal")
+    mac = request.args.get("mac")
+    if not portal or not mac:
+        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
 
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory(FRONTEND_FOLDER, path)
+    try:
+        r = requests.get(f"{portal}/stalker_portal.php?mac={mac}&action=get_live_streams", timeout=10)
+        channels = r.json()
+        return jsonify({"success": True, "channels": channels})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=5000)
