@@ -11,42 +11,60 @@ const histList = document.getElementById("histList");
 search.oninput = () => render();
 
 function fetchChannels() {
-    const url = document.getElementById("portalUrl").value;
-    const mac = document.getElementById("macAddr").value;
-    if (!url || !mac) return alert("Please enter Portal URL and MAC");
+    const url = document.getElementById("portal").value;
+    const mac = document.getElementById("mac").value;
+
+    if (!url || !mac) {
+        alert("Vendos Portal URL dhe MAC");
+        return;
+    }
 
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            channels = data.channels;
-            render();
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Error: " + data.error);
+                return;
+            }
+
+            channels = data.channels.map(c => ({
+                name: c.name,
+                url: c.cmd ? c.cmd.replace("ffmpeg ", "") : "",
+                category: c.category_name || "Other"
+            }));
+
             showCategories();
-            alert("Channels loaded successfully!");
-        } else {
-            alert("Failed to fetch channels: " + data.error);
-        }
-    }).catch(err => {
-        console.error(err);
-        alert("Error fetching channels");
-    });
+            render();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Gabim në lidhje me serverin");
+        });
 }
 
 function render(list = channels) {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-    list.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
+
+    list
+        .filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = `<div class="star" onclick="fav(event,'${c.name}')">${favorites.includes(c.name)?"⭐":"☆"}</div>
-                              <div>${c.name}</div>`;
+            card.innerHTML = `
+                <div class="star" onclick="fav(event,'${c.name}')">
+                    ${favorites.includes(c.name) ? "⭐" : "☆"}
+                </div>
+                <div>${c.name}</div>
+            `;
             card.onclick = () => play(c);
             grid.appendChild(card);
         });
 }
 
 function play(c) {
+    if (!c.url) return;
+
     if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(c.url);
@@ -54,19 +72,23 @@ function play(c) {
     } else {
         player.src = c.url;
     }
+
     addHistory(c.name);
 }
 
 function addHistory(name) {
     history.unshift(name);
-    history = [...new Set(history)].slice(0,10);
+    history = [...new Set(history)].slice(0, 10);
     localStorage.setItem("hist", JSON.stringify(history));
     updateHistory();
 }
 
-function fav(e,name) {
+function fav(e, name) {
     e.stopPropagation();
-    favorites.includes(name) ? favorites = favorites.filter(f=>f!=name) : favorites.push(name);
+    favorites.includes(name)
+        ? favorites = favorites.filter(f => f !== name)
+        : favorites.push(name);
+
     localStorage.setItem("fav", JSON.stringify(favorites));
     updateFav();
     render();
@@ -78,8 +100,8 @@ function updateFav() {
         const div = document.createElement("div");
         div.innerText = f;
         div.onclick = () => {
-            const c = channels.find(ch=>ch.name===f);
-            if(c) play(c);
+            const c = channels.find(ch => ch.name === f);
+            if (c) play(c);
         };
         favList.appendChild(div);
     });
@@ -91,8 +113,8 @@ function updateHistory() {
         const div = document.createElement("div");
         div.innerText = h;
         div.onclick = () => {
-            const c = channels.find(ch=>ch.name===h);
-            if(c) play(c);
+            const c = channels.find(ch => ch.name === h);
+            if (c) play(c);
         };
         histList.appendChild(div);
     });
@@ -101,10 +123,12 @@ function updateHistory() {
 function showCategories() {
     cats.innerHTML = "";
     const unique = [...new Set(channels.map(c => c.category))];
+
     unique.forEach(cat => {
         const div = document.createElement("div");
         div.innerText = cat;
-        div.onclick = () => render(channels.filter(c => c.category===cat));
+        div.onclick = () =>
+            render(channels.filter(c => c.category === cat));
         cats.appendChild(div);
     });
 }
