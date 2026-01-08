@@ -15,22 +15,17 @@ function fetchChannels() {
     const mac = document.getElementById("macAddr").value;
     if (!url || !mac) return alert("Enter Portal URL & MAC");
 
-    fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            channels = data.channels;
-            render();
-            showCategories();
-            alert("Channels loaded successfully!");
-        } else {
-            alert("Failed to fetch channels: " + data.error);
-        }
-    }).catch(err => {
-        console.error(err);
-        alert("Error fetching channels");
-    });
-}
+   fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
+  .then(res => res.json())
+  .then(data => {
+      if(data.success){
+          channels = data.channels;
+          render();
+          showCategories();
+      } else {
+          alert("Failed: " + data.error);
+      }
+  });
 
 function render(list = channels) {
     const grid = document.getElementById("grid");
