@@ -1,8 +1,9 @@
 import requests
 
-def get_channels(portal: str, mac: str):
-    """Fetch channels from the Stalker portal using working portal URL and MAC."""
-    portal = portal.rstrip('/')
+def get_channels(portal, mac):
+    portal = portal.strip().rstrip('/')
+    mac = mac.strip()
+
     headers = {
         "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
         "X-User-Agent": "Model: MAG254; Link: Ethernet",
@@ -11,34 +12,35 @@ def get_channels(portal: str, mac: str):
     }
 
     try:
-        # 1️⃣ Handshake
+        # Handshake
         hs_resp = requests.get(
             f"{portal}/portal.php",
             params={"type":"stb", "action":"handshake", "JsHttpRequest":"1-xml"},
             headers=headers,
             timeout=10
-        ).json()
-
-        token = hs_resp["js"]["token"]
+        )
+        hs = hs_resp.json()
+        token = hs["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # 2️⃣ Get channels
+        # Get channels
         ch_resp = requests.get(
             f"{portal}/stalker_portal.php",
             params={"type":"itv", "action":"get_all_channels", "JsHttpRequest":"1-xml"},
             headers=headers,
             timeout=10
-        ).json()
-
+        )
+        ch = ch_resp.json()
         channels = [
             {
                 "name": c["name"],
-                "url": f'{portal}/play/live.php?mac={mac}&stream={c["cmd"]}&extension=m3u8&play_token={token}',
+                "url": f'{portal}/play/live.php?mac={mac}&stream={c["id"]}&extension=m3u8&play_token={token}',
                 "category": c.get("tv_genre_id","Other")
-            }
-            for c in ch_resp["js"]["data"]
+            } for c in ch["js"]["data"]
         ]
-
         return {"success": True, "channels": channels}
+
+    except ValueError:
+        return {"success": False, "error": "Portal did not return JSON (handshake failed)"}
     except Exception as e:
         return {"success": False, "error": str(e)}
