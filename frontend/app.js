@@ -23,19 +23,14 @@ function fetchChannels() {
                 render();
                 showCategories();
                 alert("Channels loaded successfully!");
-            } else {
-                alert("Failed to fetch channels: " + data.error);
-            }
-        }).catch(err => {
-            console.error(err);
-            alert("Error fetching channels");
-        });
+            } else alert("Failed: " + data.error);
+        }).catch(err => alert("Error fetching channels"));
 }
 
 function render(list = channels) {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-    list.filter(c => c.name?.toLowerCase().includes(search.value.toLowerCase()))
+    list.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
@@ -51,17 +46,7 @@ function play(c) {
         const hls = new Hls();
         hls.loadSource(c.url);
         hls.attachMedia(player);
-    } else {
-        player.src = c.url;
-    }
-    addHistory(c.name);
-}
-
-function addHistory(name) {
-    history.unshift(name);
-    history = [...new Set(history)].slice(0,10);
-    localStorage.setItem("hist", JSON.stringify(history));
-    updateHistory();
+    } else player.src = c.url;
 }
 
 function fav(e,name) {
@@ -72,15 +57,19 @@ function fav(e,name) {
     render();
 }
 
+function addHistory(name) {
+    history.unshift(name);
+    history = [...new Set(history)].slice(0,10);
+    localStorage.setItem("hist", JSON.stringify(history));
+    updateHistory();
+}
+
 function updateFav() {
     favList.innerHTML = "";
     favorites.forEach(f => {
         const div = document.createElement("div");
         div.innerText = f;
-        div.onclick = () => {
-            const c = channels.find(ch=>ch.name===f);
-            if(c) play(c);
-        };
+        div.onclick = () => { const c = channels.find(ch=>ch.name===f); if(c) play(c); };
         favList.appendChild(div);
     });
 }
@@ -90,10 +79,7 @@ function updateHistory() {
     history.forEach(h => {
         const div = document.createElement("div");
         div.innerText = h;
-        div.onclick = () => {
-            const c = channels.find(ch=>ch.name===h);
-            if(c) play(c);
-        };
+        div.onclick = () => { const c = channels.find(ch=>ch.name===h); if(c) play(c); };
         histList.appendChild(div);
     });
 }
