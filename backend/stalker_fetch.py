@@ -1,41 +1,42 @@
 import requests
 
-def handshake(portal: str, mac: str) -> str:
-    """
-    Kryen handshake me portalin Stalker dhe kthen tokenin
-    """
-    headers = {"Cookie": f"mac={mac}"}
-    url = portal.rstrip('/') + "/portal.php"
-    params = {"type": "stb", "action": "handshake", "JsHttpRequest": "1-xml"}
-
-    resp = requests.get(url, params=params, headers=headers, timeout=10)
-    resp.raise_for_status()  # hedh exception nëse nuk funksionon
-    data = resp.json()
-    return data["js"]["token"]
-
-def get_channels(portal: str, mac: str) -> list:
-    """
-    Merr të gjitha kanalet nga portal Stalker
-    """
-    token = handshake(portal, mac)
-    headers = {"Cookie": f"mac={mac}"}
-    url = portal.rstrip('/') + "/portal.php"
-    params = {
-        "type": "itv",
-        "action": "get_all_channels",
-        "JsHttpRequest": "1-xml",
-        "token": token
+def get_channels(portal: str, mac: str):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (QtEmbedded; Linux; C)",
+        "X-User-Agent": "Model: MAG254; Link: Ethernet",
+        "Accept": "*/*",
+        "Referer": portal + "/c/",
+        "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
     }
 
-    resp = requests.get(url, params=params, headers=headers, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-    channels = [
-        {
-            "name": c["name"],
-            "url": f'{portal}/portal.php?type=itv&action=create_link&cmd={c["cmd"]}',
-            "category": c.get("tv_genre_id", "Other")
-        }
-        for c in data["js"]["data"]
-    ]
-    return channels
+    try:
+        # 1️⃣ Handshake
+        hs = requests.get(
+            f"{portal}/portal.php",
+            params={"type":"stb","action":"handshake","JsHttpRequest":"1-xml"},
+            headers=headers,
+            timeout=10
+        ).json()
+        token = hs["js"]["token"]
+        headers["Authorization"] = f"Bearer {token}"
+
+        # 2️⃣ Get channels
+        ch = requests.get(
+            f"{portal}/portal.php",
+            params={"type":"itv","action":"get_all_channels","JsHttpRequest":"1-xml"},
+            headers=headers,
+            timeout=10
+        ).json()
+
+        channels = [
+            {
+                "name": c["name"],
+                "cmd": c["cmd"],
+                "category": c.get("tv_genre_id", "Other"),
+                "url": f'{portal}/portal.php?type=itv&action=create_link&cmd={c["cmd"]}'
+            } for c in ch["js"]["data"]
+        ]
+        return {"success": True, "channels": channels}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
