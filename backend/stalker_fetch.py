@@ -1,41 +1,39 @@
 import requests
 
-def get_channels(portal: str, mac: str):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (QtEmbedded; Linux; C)",
-        "X-User-Agent": "Model: MAG254; Link: Ethernet",
-        "Accept": "*/*",
-        "Referer": portal + "/c/",
-        "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
-    }
-
+def fetch_channels(portal: str, mac: str):
+    """
+    Merr kanalet nga Stalker Portal dhe kthen listën me URL për player.
+    """
+    portal = portal.rstrip('/')
     try:
-        # 1️⃣ Handshake
-        hs = requests.get(
-            f"{portal}/portal.php",
-            params={"type":"stb","action":"handshake","JsHttpRequest":"1-xml"},
-            headers=headers,
-            timeout=10
-        ).json()
-        token = hs["js"]["token"]
-        headers["Authorization"] = f"Bearer {token}"
-
-        # 2️⃣ Get channels
-        ch = requests.get(
-            f"{portal}/portal.php",
-            params={"type":"itv","action":"get_all_channels","JsHttpRequest":"1-xml"},
-            headers=headers,
-            timeout=10
+        # 1️⃣ Handshake për token
+        hs_resp = requests.get(
+            f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml",
+            headers={"Cookie": f"mac={mac}"}, timeout=10
         ).json()
 
-        channels = [
-            {
+        token = hs_resp["js"]["token"]
+
+        # 2️⃣ Merr kanalet live
+        ch_resp = requests.get(
+            f"{portal}/stalker_portal.php?mac={mac}&action=get_live_streams",
+            headers={"Cookie": f"mac={mac}"}, timeout=10
+        ).json()
+
+        channels = []
+        for c in ch_resp["js"]["data"]:
+            url = (
+                f"{portal}/play/live.php?"
+                f"mac={mac}&"
+                f"stream={c['id']}&"
+                f"extension=m3u8&"
+                f"play_token={token}"
+            )
+            channels.append({
                 "name": c["name"],
-                "cmd": c["cmd"],
-                "category": c.get("tv_genre_id", "Other"),
-                "url": f'{portal}/portal.php?type=itv&action=create_link&cmd={c["cmd"]}'
-            } for c in ch["js"]["data"]
-        ]
+                "url": url,
+                "category": c.get("tv_genre_id", "Other")
+            })
         return {"success": True, "channels": channels}
 
     except Exception as e:
