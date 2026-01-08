@@ -1,127 +1,14 @@
-/* Reset bazik */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    display: flex;
-    height: 100vh;
-    background-color: #f4f4f4;
-    color: #333;
-}
-
-/* Sidebar */
-.sidebar {
-    width: 250px;
-    background-color: #1e1e1e;
-    color: #fff;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.sidebar .logo {
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.sidebar input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: none;
-    border-radius: 4px;
-}
-
-.sidebar button {
-    padding: 8px;
-    background-color: #ff6f00;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 15px;
-}
-
-.sidebar button:hover {
-    background-color: #ff8f00;
-}
-
-.sidebar .title {
-    margin-top: 15px;
-    margin-bottom: 5px;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.sidebar .menu div {
-    padding: 5px;
-    background-color: #333;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.sidebar .menu div:hover {
-    background-color: #444;
-}
-
-/* Main area */
-.main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.video-container {
-    width: 100%;
-    max-height: 400px;
-    margin-bottom: 20px;
-}
-
-video {
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    border-radius: 6px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-}
-
-.card {
-    background-color: #fff;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-}
-
-.card:hover {
-    transform: scale(1.05);
-}
-
-.card .star {
-    float: right;
-    cursor: pointer;
-    font-size: 16px;
-}
+body { margin:0; font-family:sans-serif; display:flex; height:100vh; }
+.sidebar { width:250px; background:#1c1c1c; color:#fff; padding:10px; overflow:auto; }
+.logo { font-size:20px; font-weight:bold; margin-bottom:10px; }
+input { width:100%; margin:5px 0; padding:5px; }
+button { width:100%; padding:5px; margin:5px 0; cursor:pointer; }
+.title { font-weight:bold; margin-top:10px; }
+.menu div { padding:5px; cursor:pointer; border-bottom:1px solid #333; }
+.menu div:hover { background:#333; }
+.main { flex:1; background:#f5f5f5; padding:10px; display:flex; flex-direction:column; }
+.video-container { height:300px; }
+video { width:100%; height:100%; background:#000; }
+.grid { display:flex; flex-wrap:wrap; margin-top:10px; }
+.card { width:150px; padding:5px; margin:5px; background:#fff; border:1px solid #ccc; cursor:pointer; }
+.star { float:right; cursor:pointer; }
