@@ -1,7 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend")
+
+@app.route("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
 
 @app.route("/fetch_channels")
 def fetch_channels():
@@ -12,7 +17,7 @@ def fetch_channels():
 
     try:
         r = requests.get(f"{portal}/stalker_portal.php?mac={mac}&action=get_live_streams", timeout=10)
-        channels = r.json()  # ose parse sipas formatit te portalit
+        channels = r.json()
         return jsonify({"success": True, "channels": channels})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
