@@ -26,8 +26,7 @@ function fetchChannels() {
             } else {
                 alert("Failed to fetch channels: " + data.error);
             }
-        })
-        .catch(err => {
+        }).catch(err => {
             console.error(err);
             alert("Error fetching channels");
         });
@@ -36,14 +35,12 @@ function fetchChannels() {
 function render(list = channels) {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-
     list.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = `
-                <div class="star" onclick="toggleFav(event,'${c.name}')">${favorites.includes(c.name) ? "⭐" : "☆"}</div>
-                <div>${c.name}</div>`;
+            card.innerHTML = `<div class="star" onclick="fav(event,'${c.name}')">${favorites.includes(c.name)?"⭐":"☆"}</div>
+                              <div>${c.name}</div>`;
             card.onclick = () => play(c);
             grid.appendChild(card);
         });
@@ -54,27 +51,22 @@ function play(c) {
         const hls = new Hls();
         hls.loadSource(c.url);
         hls.attachMedia(player);
-        player.play();
-    } else {
-        player.src = c.url;
-        player.play();
-    }
-    addHistory(c.name);
+    } else player.src = c.url;
+}
+
+function fav(e,name) {
+    e.stopPropagation();
+    favorites.includes(name) ? favorites = favorites.filter(f=>f!=name) : favorites.push(name);
+    localStorage.setItem("fav", JSON.stringify(favorites));
+    updateFav();
+    render();
 }
 
 function addHistory(name) {
     history.unshift(name);
-    history = [...new Set(history)].slice(0, 10);
+    history = [...new Set(history)].slice(0,10);
     localStorage.setItem("hist", JSON.stringify(history));
     updateHistory();
-}
-
-function toggleFav(e, name) {
-    e.stopPropagation();
-    favorites.includes(name) ? favorites = favorites.filter(f => f !== name) : favorites.push(name);
-    localStorage.setItem("fav", JSON.stringify(favorites));
-    updateFav();
-    render();
 }
 
 function updateFav() {
@@ -83,8 +75,8 @@ function updateFav() {
         const div = document.createElement("div");
         div.innerText = f;
         div.onclick = () => {
-            const c = channels.find(ch => ch.name === f);
-            if (c) play(c);
+            const c = channels.find(ch=>ch.name===f);
+            if(c) play(c);
         };
         favList.appendChild(div);
     });
@@ -96,8 +88,8 @@ function updateHistory() {
         const div = document.createElement("div");
         div.innerText = h;
         div.onclick = () => {
-            const c = channels.find(ch => ch.name === h);
-            if (c) play(c);
+            const c = channels.find(ch=>ch.name===h);
+            if(c) play(c);
         };
         histList.appendChild(div);
     });
@@ -109,7 +101,7 @@ function showCategories() {
     unique.forEach(cat => {
         const div = document.createElement("div");
         div.innerText = cat;
-        div.onclick = () => render(channels.filter(c => c.category === cat));
+        div.onclick = () => render(channels.filter(c => c.category===cat));
         cats.appendChild(div);
     });
 }
