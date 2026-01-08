@@ -3,22 +3,17 @@ import requests
 import json
 from datetime import datetime
 import pytz
-from tqdm import tqdm
 
-# --- Config ---
 PORTAL_URL = os.environ.get("PORTAL_URL", "http://your.stalker.portal")
 MAC = os.environ.get("MAC", "00:1A:79:XX:XX:XX")
-OUTPUT_FILE = "frontend/channels.json"
+OUTPUT_FILE = "../frontend/channels.json"  # shiko path relative për Flask
 
 def fetch_channels():
-    """
-    Fetch live channels from Stalker Portal using MAC address.
-    """
     url = f"{PORTAL_URL}/stalker_portal.php?mac={MAC}&action=get_live_streams"
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()  # Assuming JSON response
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json()
         return data
     except Exception as e:
         print(f"[ERROR] Failed to fetch channels: {e}")

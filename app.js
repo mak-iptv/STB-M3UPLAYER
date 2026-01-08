@@ -9,13 +9,11 @@ const favList = document.getElementById("favList");
 const histList = document.getElementById("histList");
 const search = document.getElementById("search");
 
-// --- Load channels.json ---
 fetch("channels.json")
   .then(r=>r.json())
   .then(data=>{ channels=data; render(); showCategories(); })
   .catch(e=>console.warn("Failed to load channels.json", e));
 
-// --- Render grid ---
 function render(list=channels){
   grid.innerHTML="";
   list.filter(c=>c.name.toLowerCase().includes(search.value.toLowerCase()))
@@ -31,7 +29,6 @@ function render(list=channels){
   updateFav(); updateHistory();
 }
 
-// --- Categories ---
 function showCategories(){
   const unique=[...new Set(channels.map(c=>c.cat))];
   cats.innerHTML="";
@@ -43,7 +40,6 @@ function showCategories(){
   });
 }
 
-// --- Player ---
 function play(c){
   let url = c.url;
   if(Hls.isSupported()){
@@ -54,7 +50,6 @@ function play(c){
   addHistory(c.name);
 }
 
-// --- Favorites & History ---
 function fav(e,name){e.stopPropagation();
   favorites.includes(name)?favorites=favorites.filter(f=>f!=name):favorites.push(name);
   localStorage.setItem("fav",JSON.stringify(favorites));
@@ -66,5 +61,4 @@ function addHistory(name){history.unshift(name);history=[...new Set(history)].sl
 function updateFav(){favList.innerHTML="";favorites.forEach(f=>{let div=document.createElement("div");div.innerText=f;div.onclick=()=>{let c=channels.find(ch=>ch.name===f);if(c)play(c);};favList.appendChild(div);});}
 function updateHistory(){histList.innerHTML="";history.forEach(h=>{let div=document.createElement("div");div.innerText=h;div.onclick=()=>{let c=channels.find(ch=>ch.name===h);if(c)play(c);};histList.appendChild(div);});}
 
-// --- Search ---
 search.oninput=()=>render();
