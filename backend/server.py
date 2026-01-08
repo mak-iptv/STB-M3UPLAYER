@@ -1,15 +1,24 @@
-from flask import Flask, send_from_directory
-from stalker_fetch import app as stalker_app
+from flask import Flask, request, jsonify, send_from_directory
+from stalker_fetch import get_channels
+import os
 
-app = Flask(__name__, static_folder="../frontend", static_url_path="")
+app = Flask(__name__, static_folder="../frontend", static_url_path="/")
 
-# Frontend index.html
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
 
-# Integron API nga stalker_fetch.py
-app.register_blueprint(stalker_app, url_prefix="/api")
+@app.route("/fetch_channels")
+def fetch_channels_route():
+    portal = request.args.get("portal", "").strip()
+    mac = request.args.get("mac", "").strip()
+
+    if not portal or not mac:
+        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
+
+    result = get_channels(portal, mac)
+    return jsonify(result)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
