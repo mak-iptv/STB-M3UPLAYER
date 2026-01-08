@@ -5,7 +5,6 @@ app = Flask(__name__, static_folder="../frontend", static_url_path="")
 
 @app.route('/')
 def index():
-    # Kthen index.html nga frontend
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/fetch_channels')
@@ -24,7 +23,7 @@ def fetch_channels():
     }
 
     try:
-        # 1️⃣ Handshake
+        # Handshake
         hs = requests.get(
             f"{portal}/stalker_portal/server/load.php",
             params={"type": "stb", "action": "handshake", "JsHttpRequest": "1-xml"},
@@ -35,7 +34,7 @@ def fetch_channels():
         token = hs["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # 2️⃣ Get channels
+        # Get channels
         ch = requests.get(
             f"{portal}/stalker_portal/server/load.php",
             params={"type": "itv", "action": "get_all_channels", "JsHttpRequest": "1-xml"},
@@ -56,7 +55,6 @@ def fetch_channels():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
