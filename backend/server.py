@@ -1,31 +1,37 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, send_from_directory, request, jsonify
 import requests
-import os
 
-app = Flask(__name__, static_folder='../frontend')
+app = Flask(
+    __name__,
+    static_folder='../frontend',
+    static_url_path=''
+)
 
-@app.route("/")
+@app.route('/')
 def index():
     return send_from_directory(app.static_folder, 'index.html')
 
-@app.route("/fetch_channels")
+@app.route('/fetch_channels')
 def fetch_channels():
-    portal = request.args.get("portal", "").rstrip("/")
-    mac = request.args.get("mac", "")
+    portal = request.args.get('portal')
+    mac = request.args.get('mac')
+    
     if not portal or not mac:
-        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
+        return jsonify({"success": False, "error": "Portal or MAC missing"})
 
     headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer": f"{portal}/c/",
+        "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
+        "X-User-Agent": "Model: MAG254; Link: Ethernet",
+        "Accept": "*/*",
+        "Referer": portal.rstrip('/') + "/c/",
         "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
     }
 
     try:
-        # 1️⃣ Handshake
+        # HANDSHAKE
         hs = requests.get(
-            f"{portal}/portal.php",
-            params={"type":"stb","action":"handshake","token":"","prehash":"0","JsHttpRequest":"1-xml"},
+            f"{portal}/stalker_portal/server/load.php",
+            params={"type":"stb","action":"handshake","JsHttpRequest":"1-xml"},
             headers=headers,
             timeout=10
         ).json()
@@ -33,9 +39,9 @@ def fetch_channels():
         token = hs["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # 2️⃣ Get channels
+        # GET CHANNELS
         ch = requests.get(
-            f"{portal}/portal.php",
+            f"{portal}/stalker_portal/server/load.php",
             params={"type":"itv","action":"get_all_channels","JsHttpRequest":"1-xml"},
             headers=headers,
             timeout=10
@@ -44,7 +50,7 @@ def fetch_channels():
         channels = [
             {
                 "name": c["name"],
-                "url": f'{portal}/portal.php?type=itv&action=create_link&cmd={c["cmd"]}',
+                "url": f'{portal}/stalker_portal/server/load.php?type=itv&action=create_link&cmd={c["cmd"]}',
                 "category": c.get("tv_genre_id","Other")
             }
             for c in ch["js"]["data"]
@@ -56,4 +62,4 @@ def fetch_channels():
         return jsonify({"success": False, "error": str(e)})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=10000)
