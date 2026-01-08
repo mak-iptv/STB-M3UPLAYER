@@ -12,22 +12,26 @@
 <div class="sidebar">
   <div class="logo">📺 IPTV Render</div>
 
-  <input id="portalUrl" placeholder="Portal URL">
-  <input id="macAddr" placeholder="MAC">
+  <!-- ID TË RREGULLUARA -->
+  <input id="portal" placeholder="Portal URL">
+  <input id="mac" placeholder="MAC Address">
   <button onclick="fetchChannels()">Load Channels</button>
 
   <input id="search" placeholder="Search channel">
+
   <div class="title">Categories</div>
   <div class="menu" id="cats"></div>
+
   <div class="title">⭐ Favorites</div>
   <div class="menu" id="favList"></div>
+
   <div class="title">🕒 History</div>
   <div class="menu" id="histList"></div>
 </div>
 
 <div class="main">
   <div class="video-container">
-    <video id="player" autoplay controls></video>
+    <video id="player" controls autoplay></video>
   </div>
   <div class="grid" id="grid"></div>
 </div>
