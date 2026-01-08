@@ -2,15 +2,18 @@ import os
 from flask import Flask, send_from_directory, jsonify, request
 import requests
 
-# Vendos folderin frontend si static folder
-app = Flask(__name__, static_folder="../frontend")
+# Vendos rrugën absolute për frontend
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, '../frontend')
+
+app = Flask(__name__, static_folder=FRONTEND_DIR)
 
 # Route kryesore për index.html
 @app.route('/')
 def index():
     return send_from_directory(app.static_folder, 'index.html')
 
-# Route për CSS/JS
+# Route për CSS/JS dhe assets
 @app.route('/<path:path>')
 def static_proxy(path):
     return send_from_directory(app.static_folder, path)
