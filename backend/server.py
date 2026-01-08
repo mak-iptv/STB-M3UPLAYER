@@ -8,6 +8,11 @@ app = Flask(__name__, static_folder="../frontend")
 def index():
     return send_from_directory(app.static_folder, 'index.html')
 
+# ✅ Route për skedarët statikë
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory(app.static_folder, filename)
+
 @app.route('/fetch_channels')
 def fetch_channels_route():
     portal = request.args.get("portal")
