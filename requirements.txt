@@ -1,3 +1,5 @@
-PyQt5==5.15.7
 requests==2.31.0
+pytz==2025.7
+tqdm==4.66.1
+PyQt5==5.15.7
 qdarkstyle==3.0.2
