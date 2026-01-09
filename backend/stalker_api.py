@@ -1,44 +1,24 @@
-import requests
+from flask import Flask, request, jsonify, send_from_directory
+from stalker_api import get_channels
+import os
 
-def get_channels(portal, mac):
-    portal = portal.rstrip('/')
-    headers = {
-        "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
-        "X-User-Agent": "Model: MAG254; Link: Ethernet",
-        "Accept": "*/*",
-        "Referer": f"{portal}/c/",
-        "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
-    }
+app = Flask(__name__, static_folder="../frontend", static_url_path="")
 
-    try:
-        # HANDSHAKE
-        hs = requests.get(
-            f"{portal}/portal.php",
-            params={"type": "stb", "action": "handshake", "JsHttpRequest": "1-xml"},
-            headers=headers,
-            timeout=10
-        ).json()
+@app.route("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
 
-        token = hs["js"]["token"]
-        headers["Authorization"] = f"Bearer {token}"
+@app.route("/fetch_channels")
+def fetch_channels():
+    portal = request.args.get("portal", "").strip()
+    mac = request.args.get("mac", "").strip()
 
-        # GET CHANNELS
-        ch = requests.get(
-            f"{portal}/stalker_portal.php",
-            params={"action": "get_live_streams", "mac": mac},
-            headers=headers,
-            timeout=10
-        ).json()
+    if not portal or not mac:
+        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
 
-        channels = []
-        for c in ch.get("js", {}).get("data", []):
-            channels.append({
-                "name": c["name"],
-                "url": f"{portal}/play/live.php?mac={mac}&stream={c['id']}&extension=m3u8&play_token={c['play_token']}",
-                "category": c.get("tv_genre_id", "Other")
-            })
+    result = get_channels(portal, mac)
+    return jsonify(result)
 
-        return {"success": True, "channels": channels}
-
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
