@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
-from stalker_fetch import get_channels
+from .stalker_fetch import get_channels
 import os
 
 app = Flask(__name__, static_folder="../frontend", static_url_path="")
