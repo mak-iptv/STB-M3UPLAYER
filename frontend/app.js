@@ -18,17 +18,16 @@ function fetchChannels() {
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
         .then(res => res.json())
         .then(data => {
-            if(data.success){
+            if (data.success) {
                 channels = data.channels;
                 render();
                 showCategories();
-                updateFav();
-                updateHistory();
-                alert("Channels loaded!");
+                alert("Channels loaded successfully!");
             } else {
-                alert(data.error || "Failed to fetch channels");
+                alert(data.error);
             }
-        }).catch(err => alert("Error: " + err));
+        })
+        .catch(err => alert("Error fetching channels: " + err));
 }
 
 function render(list = channels) {
@@ -45,23 +44,22 @@ function render(list = channels) {
         });
 }
 
-function play(c){
-    if(Hls.isSupported()){
+function play(c) {
+    if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(c.url);
         hls.attachMedia(player);
     } else player.src = c.url;
-    addHistory(c.name);
 }
 
-function addHistory(name){
+function addHistory(name) {
     history.unshift(name);
     history = [...new Set(history)].slice(0,10);
     localStorage.setItem("hist", JSON.stringify(history));
     updateHistory();
 }
 
-function fav(e,name){
+function fav(e,name) {
     e.stopPropagation();
     favorites.includes(name) ? favorites = favorites.filter(f=>f!=name) : favorites.push(name);
     localStorage.setItem("fav", JSON.stringify(favorites));
@@ -69,9 +67,9 @@ function fav(e,name){
     render();
 }
 
-function updateFav(){
+function updateFav() {
     favList.innerHTML = "";
-    favorites.forEach(f=>{
+    favorites.forEach(f => {
         const div = document.createElement("div");
         div.innerText = f;
         div.onclick = () => {
@@ -82,9 +80,9 @@ function updateFav(){
     });
 }
 
-function updateHistory(){
+function updateHistory() {
     histList.innerHTML = "";
-    history.forEach(h=>{
+    history.forEach(h => {
         const div = document.createElement("div");
         div.innerText = h;
         div.onclick = () => {
@@ -95,13 +93,13 @@ function updateHistory(){
     });
 }
 
-function showCategories(){
+function showCategories() {
     cats.innerHTML = "";
-    const unique = [...new Set(channels.map(c=>c.category))];
-    unique.forEach(cat=>{
+    const unique = [...new Set(channels.map(c => c.category))];
+    unique.forEach(cat => {
         const div = document.createElement("div");
         div.innerText = cat;
-        div.onclick = ()=> render(channels.filter(c=>c.category===cat));
+        div.onclick = () => render(channels.filter(c => c.category===cat));
         cats.appendChild(div);
     });
 }
