@@ -1,29 +1,27 @@
 import requests
-from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+def fetch_channels(portal, mac):
+    portal = portal.rstrip("/")
+    headers = {"Cookie": f"mac={mac}"}
 
-@app.route("/fetch_channels")
-def fetch_channels():
-    portal = request.args.get("portal").rstrip("/")
-    mac = request.args.get("mac")
+    # 1️⃣ Handshake
+    hs = requests.get(f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml", headers=headers, timeout=10).json()
+    token = hs["js"]["token"]
 
-    try:
-        # HANDSHAKE
-        resp = requests.get(
-            f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml",
-            headers={"Cookie": f"mac={mac}"}, timeout=10
-        )
-        token = resp.json()["js"]["token"]
+    # 2️⃣ Merr kanalet
+    ch = requests.get(
+        f"{portal}/stalker_portal.php?action=get_live_streams&mac={mac}",
+        headers=headers,
+        timeout=10
+    ).json()
 
-        # Këtu mund të mbledhim kanalet
-        # Për shembull:
-        channels = [
-            {
-                "name": "Channel 1",
-                "url": f"{portal}/play/live.php?mac={mac}&stream=156653&extension=m3u8&play_token={token}"
-            }
-        ]
-        return jsonify({"success": True, "channels": channels})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+    channels = [
+        {
+            "name": c["name"],
+            "url": f'{portal}/play/live.php?mac={mac}&stream={c["id"]}&extension=m3u8&play_token={token}',
+            "category": c.get("tv_genre_id", "Other")
+        }
+        for c in ch["js"]["data"]
+    ]
+
+    return {"success": True, "channels": channels}
