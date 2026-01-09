@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
-from stalker_fetch import get_channels
+from stalker_api import get_channels
 import os
 
 app = Flask(__name__, static_folder="../frontend", static_url_path="")
@@ -12,15 +12,9 @@ def index():
 def fetch_channels():
     portal = request.args.get("portal", "").strip()
     mac = request.args.get("mac", "").strip()
-
     if not portal or not mac:
-        return jsonify({
-            "success": False,
-            "error": "Portal URL or MAC missing"
-        })
-
-    result = get_channels(portal, mac)
-    return jsonify(result)
+        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
+    return jsonify(get_channels(portal, mac))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))

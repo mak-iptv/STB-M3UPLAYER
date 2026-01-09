@@ -16,20 +16,20 @@ function fetchChannels() {
     if (!url || !mac) return alert("Enter Portal URL & MAC");
 
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                channels = data.channels;
-                render();
-                showCategories();
-                alert("Channels loaded successfully!");
-            } else {
-                alert("Failed to fetch channels: " + data.error);
-            }
-        }).catch(err => {
-            console.error(err);
-            alert("Error fetching channels");
-        });
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            channels = data.channels;
+            render();
+            showCategories();
+            alert("Channels loaded!");
+        } else {
+            alert("Failed: " + data.error);
+        }
+    }).catch(err => {
+        console.error(err);
+        alert("Error fetching channels");
+    });
 }
 
 function render(list = channels) {
@@ -39,8 +39,7 @@ function render(list = channels) {
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = `<div class="star" onclick="fav(event,'${c.name}')">${favorites.includes(c.name)?"⭐":"☆"}</div>
-                              <div>${c.name}</div>`;
+            card.innerText = c.name;
             card.onclick = () => play(c);
             grid.appendChild(card);
         });
@@ -54,6 +53,14 @@ function play(c) {
     } else {
         player.src = c.url;
     }
+}
+
+// Favorites & History
+function addHistory(name) {
+    history.unshift(name);
+    history = [...new Set(history)].slice(0,10);
+    localStorage.setItem("hist", JSON.stringify(history));
+    updateHistory();
 }
 
 function fav(e,name) {
@@ -88,13 +95,6 @@ function updateHistory() {
         };
         histList.appendChild(div);
     });
-}
-
-function addHistory(name) {
-    history.unshift(name);
-    history = [...new Set(history)].slice(0,10);
-    localStorage.setItem("hist", JSON.stringify(history));
-    updateHistory();
 }
 
 function showCategories() {
