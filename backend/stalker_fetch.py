@@ -1,54 +1,56 @@
 import requests
 
-def get_channels(portal, mac):
+def fetch_channels(portal: str, mac: str):
+    """
+    Merr kanalet nga Stalker portal.
+    portal: URL e portalit (shembull: http://IP:PORT/c/)
+    mac: MAC i pajisjes
+    """
+    portal = portal.rstrip('/')  # heq / në fund
+    headers = {
+        "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
+        "X-User-Agent": "Model: MAG254; Link: Ethernet",
+        "Accept": "*/*",
+        "Referer": portal + "/c/",
+        "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
+    }
+
     try:
-        portal = portal.rstrip("/")
-
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
-        }
-
-        # HANDSHAKE
-        hs = requests.get(
-            f"{portal}/portal.php",
-            params={"type":"stb","action":"handshake","JsHttpRequest":"1-xml"},
+        # 1️⃣ HANDSHAKE
+        hs_resp = requests.get(
+            f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml",
             headers=headers,
             timeout=10
-        ).json()
+        )
+        try:
+            hs = hs_resp.json()
+        except ValueError:
+            return {"success": False, "error": "Handshake failed: invalid JSON", "text": hs_resp.text}
 
         token = hs["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # GET CHANNELS
-        ch = requests.get(
-            f"{portal}/portal.php",
-            params={"type":"itv","action":"get_all_channels","JsHttpRequest":"1-xml"},
+        # 2️⃣ GET LIVE STREAMS
+        ch_resp = requests.get(
+            f"{portal}/stalker_portal.php",
+            params={"action":"get_live_streams", "mac": mac},
             headers=headers,
             timeout=10
-        ).json()
+        )
+        try:
+            ch_data = ch_resp.json()
+        except ValueError:
+            return {"success": False, "error": "Failed to fetch channels: invalid JSON", "text": ch_resp.text}
 
         channels = []
-
-        for c in ch["js"]["data"]:
-            link = requests.get(
-                f"{portal}/portal.php",
-                params={
-                    "type":"itv",
-                    "action":"create_link",
-                    "cmd": c["cmd"],
-                    "JsHttpRequest":"1-xml"
-                },
-                headers=headers,
-                timeout=10
-            ).json()
-
-            stream = link["js"]["cmd"].replace("ffmpeg ", "")
-
+        for c in ch_data:
+            stream = c.get("id") or c.get("cmd")
+            play_token = c.get("play_token") or token
+            url = f"{portal}/play/live.php?mac={mac}&stream={stream}&extension=m3u8&play_token={play_token}"
             channels.append({
-                "name": c["name"],
-                "url": stream,
-                "category": c.get("tv_genre_id","Other")
+                "name": c.get("name", "Unknown"),
+                "url": url,
+                "category": c.get("category", "Other")
             })
 
         return {"success": True, "channels": channels}
