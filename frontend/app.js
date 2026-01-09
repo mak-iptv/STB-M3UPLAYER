@@ -18,26 +18,23 @@ function fetchChannels() {
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
+            if(data.success){
                 channels = data.channels;
                 render();
                 showCategories();
-                alert("Channels loaded successfully!");
+                updateFav();
+                updateHistory();
+                alert("Channels loaded!");
             } else {
-                alert("Failed to fetch channels: " + data.error);
+                alert(data.error || "Failed to fetch channels");
             }
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Error fetching channels");
-        });
+        }).catch(err => alert("Error: " + err));
 }
 
 function render(list = channels) {
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-
-    list.filter(c => c.name?.toLowerCase().includes(search.value.toLowerCase()))
+    list.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase()))
         .forEach(c => {
             const card = document.createElement("div");
             card.className = "card";
@@ -48,36 +45,33 @@ function render(list = channels) {
         });
 }
 
-function play(c) {
-    const proxyUrl = "/proxy_stream?url=" + encodeURIComponent(c.url);
-
-    if (Hls.isSupported()) {
+function play(c){
+    if(Hls.isSupported()){
         const hls = new Hls();
-        hls.loadSource(proxyUrl);
+        hls.loadSource(c.url);
         hls.attachMedia(player);
-    } else {
-        player.src = proxyUrl;
-    }
+    } else player.src = c.url;
+    addHistory(c.name);
 }
 
-function addHistory(name) {
+function addHistory(name){
     history.unshift(name);
-    history = [...new Set(history)].slice(0, 10);
+    history = [...new Set(history)].slice(0,10);
     localStorage.setItem("hist", JSON.stringify(history));
     updateHistory();
 }
 
-function fav(e, name) {
+function fav(e,name){
     e.stopPropagation();
-    favorites.includes(name) ? favorites = favorites.filter(f=>f!==name) : favorites.push(name);
+    favorites.includes(name) ? favorites = favorites.filter(f=>f!=name) : favorites.push(name);
     localStorage.setItem("fav", JSON.stringify(favorites));
     updateFav();
     render();
 }
 
-function updateFav() {
+function updateFav(){
     favList.innerHTML = "";
-    favorites.forEach(f => {
+    favorites.forEach(f=>{
         const div = document.createElement("div");
         div.innerText = f;
         div.onclick = () => {
@@ -88,9 +82,9 @@ function updateFav() {
     });
 }
 
-function updateHistory() {
+function updateHistory(){
     histList.innerHTML = "";
-    history.forEach(h => {
+    history.forEach(h=>{
         const div = document.createElement("div");
         div.innerText = h;
         div.onclick = () => {
@@ -101,13 +95,13 @@ function updateHistory() {
     });
 }
 
-function showCategories() {
+function showCategories(){
     cats.innerHTML = "";
-    const unique = [...new Set(channels.map(c => c.category))];
-    unique.forEach(cat => {
+    const unique = [...new Set(channels.map(c=>c.category))];
+    unique.forEach(cat=>{
         const div = document.createElement("div");
         div.innerText = cat;
-        div.onclick = () => render(channels.filter(c => c.category === cat));
+        div.onclick = ()=> render(channels.filter(c=>c.category===cat));
         cats.appendChild(div);
     });
 }
