@@ -16,18 +16,18 @@ function fetchChannels() {
     if (!url || !mac) return alert("Enter Portal URL & MAC");
 
     fetch(`/fetch_channels?portal=${encodeURIComponent(url)}&mac=${encodeURIComponent(mac)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                channels = data.channels;
-                render();
-                showCategories();
-                alert("Channels loaded successfully!");
-            } else {
-                alert(data.error);
-            }
-        })
-        .catch(err => alert("Error fetching channels: " + err));
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            channels = data.channels;
+            render();
+            showCategories();
+            updateFav();
+            updateHistory();
+        } else {
+            alert("Failed: " + data.error);
+        }
+    }).catch(err => alert("Error fetching channels"));
 }
 
 function render(list = channels) {
@@ -49,7 +49,10 @@ function play(c) {
         const hls = new Hls();
         hls.loadSource(c.url);
         hls.attachMedia(player);
-    } else player.src = c.url;
+    } else {
+        player.src = c.url;
+    }
+    addHistory(c.name);
 }
 
 function addHistory(name) {
