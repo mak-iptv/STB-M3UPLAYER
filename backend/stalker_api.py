@@ -1,24 +1,23 @@
-from flask import Flask, request, jsonify, send_from_directory
-from stalker_api import get_channels
-import os
 
-app = Flask(__name__, static_folder="../frontend", static_url_path="")
+import requests
 
-@app.route("/")
-def index():
-    return send_from_directory(app.static_folder, "index.html")
+def get_channels(portal, mac):
+    try:
+        portal = portal.rstrip("/")
+        r = requests.get(f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml",
+                         headers={"Cookie": f"mac={mac}"})
+        token = r.json()["js"]["token"]
 
-@app.route("/fetch_channels")
-def fetch_channels():
-    portal = request.args.get("portal", "").strip()
-    mac = request.args.get("mac", "").strip()
+        headers = {"Cookie": f"mac={mac}", "Authorization": f"Bearer {token}"}
+        ch = requests.get(f"{portal}/portal.php?type=itv&action=get_all_channels&JsHttpRequest=1-xml",
+                          headers=headers).json()
 
-    if not portal or not mac:
-        return jsonify({"success": False, "error": "Portal URL or MAC missing"})
-
-    result = get_channels(portal, mac)
-    return jsonify(result)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+        channels = []
+        for c in ch["js"]["data"]:
+            channels.append({
+                "name": c["name"],
+                "url": f"{portal}/play/live.php?mac={mac}&stream={c['id']}&extension=m3u8"
+            })
+        return {"success": True, "channels": channels}
+    except Exception as e:
+        return {"success": False, "error": str(e)}

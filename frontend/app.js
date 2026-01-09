@@ -1,48 +1,16 @@
-import requests
 
-def get_channels(portal: str, mac: str):
-    portal = portal.rstrip("/")  # heq slash fundor
-    headers = {
-        "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C)",
-        "X-User-Agent": "Model: MAG254; Link: Ethernet",
-        "Accept": "*/*",
-        "Referer": portal + "/c/",
-        "Cookie": f"mac={mac}; stb_lang=en; timezone=Europe/London"
-    }
-
-    try:
-        # 1️⃣ Handshake për token
-        resp = requests.get(
-            f"{portal}/portal.php?type=stb&action=handshake&JsHttpRequest=1-xml",
-            headers=headers,
-            timeout=10
-        )
-        data = resp.json()  # ky JSON duhet të kthejë token
-        token = data["js"]["token"]
-
-        # 2️⃣ Merr të gjitha kanalet
-        resp2 = requests.get(
-            f"{portal}/stalker_portal.php",
-            params={
-                "type": "itv",
-                "action": "get_all_channels",
-                "JsHttpRequest": "1-xml"
-            },
-            headers={**headers, "Authorization": f"Bearer {token}"},
-            timeout=10
-        )
-        ch_data = resp2.json()
-
-        channels = []
-        for c in ch_data["js"]["data"]:
-            channels.append({
-                "name": c["name"],
-                "category": c.get("tv_genre_id", "Other"),
-                # link direkt për player
-                "url": f"{portal}/play/live.php?mac={mac}&stream={c['cmd']}&extension=m3u8&play_token={token}"
-            })
-
-        return {"success": True, "channels": channels}
-
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+function load(){
+ fetch(`/fetch_channels?portal=${portal.value}&mac=${mac.value}`)
+ .then(r=>r.json()).then(d=>{
+  list.innerHTML='';
+  d.channels.forEach(c=>{
+   let li=document.createElement('li');
+   li.innerText=c.name;
+   li.onclick=()=>{
+    if(Hls.isSupported()){let h=new Hls();h.loadSource(c.url);h.attachMedia(v);}
+    else v.src=c.url;
+   };
+   list.appendChild(li);
+  })
+ })
+}
