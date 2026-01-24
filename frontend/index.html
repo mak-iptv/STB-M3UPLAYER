@@ -1,37 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>IPTV Render Player</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>STB M3U Player</title>
 </head>
 <body>
+    <h1>IPTV Player</h1>
+    Portal URL: <input id="portalUrl" placeholder="https://portal.example.com"><br>
+    MAC: <input id="macAddr" placeholder="00:1A:79:XX:XX:XX"><br>
+    <button onclick="fetchChannels()">Load Channels</button>
 
-<div class="sidebar">
-  <div class="logo">📺 IPTV Render</div>
+    <input id="search" placeholder="Search channels">
+    <div id="cats"></div>
+    <div id="grid"></div>
+    <h3>Favorites</h3>
+    <div id="favList"></div>
+    <h3>History</h3>
+    <div id="histList"></div>
 
-  <input id="portalUrl" placeholder="Portal URL">
-  <input id="macAddr" placeholder="MAC">
-  <button onclick="fetchChannels()">Load Channels</button>
-
-  <input id="search" placeholder="Search channel">
-  <div class="title">Categories</div>
-  <div class="menu" id="cats"></div>
-  <div class="title">⭐ Favorites</div>
-  <div class="menu" id="favList"></div>
-  <div class="title">🕒 History</div>
-  <div class="menu" id="histList"></div>
-</div>
-
-<div class="main">
-  <div class="video-container">
-    <video id="player" autoplay controls></video>
-  </div>
-  <div class="grid" id="grid"></div>
-</div>
-
-<script src="app.js"></script>
+    <video id="player" controls width="640" height="360"></video>
+    <script src="app.js"></script>
 </body>
 </html>
