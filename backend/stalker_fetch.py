@@ -32,6 +32,7 @@ def get_channels(portal: str, mac: str):
         ch_resp.raise_for_status()
         ch_data = ch_resp.json()["js"]["data"]
 
+        # 🔹 Krijo listën e kanaleve
         channels = [
             {
                 "name": c["name"],
