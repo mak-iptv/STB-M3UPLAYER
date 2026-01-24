@@ -10,7 +10,6 @@ def get_channels(portal: str, mac: str):
     }
 
     try:
-        # 🔹 HANDSHAKE
         resp = requests.get(
             f"{portal}/portal.php",
             params={"type": "stb", "action": "handshake", "JsHttpRequest": "1-xml"},
@@ -18,11 +17,9 @@ def get_channels(portal: str, mac: str):
             timeout=10
         )
         resp.raise_for_status()
-        data = resp.json()
-        token = data["js"]["token"]
+        token = resp.json()["js"]["token"]
         headers["Authorization"] = f"Bearer {token}"
 
-        # 🔹 GET CHANNELS
         ch_resp = requests.get(
             f"{portal}/server/load.php",
             params={"type": "itv", "action": "get_all_channels", "JsHttpRequest": "1-xml"},
@@ -32,7 +29,6 @@ def get_channels(portal: str, mac: str):
         ch_resp.raise_for_status()
         ch_data = ch_resp.json()["js"]["data"]
 
-        # 🔹 Krijo listën e kanaleve
         channels = [
             {
                 "name": c["name"],
