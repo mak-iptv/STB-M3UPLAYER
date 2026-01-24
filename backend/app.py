@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
-from stalker_fetch import fetch_channels
+from stalker_fetch import get_channels
 import os
 
 # Vendos rrugën absolute te frontend
@@ -18,7 +18,7 @@ def fetch():
     if not portal or not mac:
         return jsonify({"success": False, "error": "Portal URL or MAC missing"})
 
-    result = fetch_channels(portal, mac)
+    result = get_channels(portal, mac)
     return jsonify(result)
 
 if __name__ == "__main__":
