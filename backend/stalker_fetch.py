@@ -35,3 +35,13 @@ def get_channels(portal: str, mac: str):
         channels = [
             {
                 "name": c["name"],
+                "category": c.get("tv_genre_id", "Other"),
+                "url": f"{portal}/play/live.php?mac={mac}&stream={c['cmd']}&extension=m3u8&play_token={token}"
+            }
+            for c in ch_data
+        ]
+
+        return {"success": True, "channels": channels}
+
+    except Exception as e:
+        return {"success": False, "error": f"Failed to fetch channels: {str(e)}"}
