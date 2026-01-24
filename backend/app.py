@@ -2,7 +2,6 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from stalker_fetch import get_channels
 
-# Absolute path e frontend
 frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend"))
 app = Flask(__name__, static_folder=frontend_path, static_url_path="")
 
