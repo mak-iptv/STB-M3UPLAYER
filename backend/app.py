@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from stalker_fetch import get_channels
 import os
 
-# Frontend folder relative to backend
+# Vendos frontend folder
 frontend_path = os.path.join(os.path.dirname(__file__), "../frontend")
 app = Flask(__name__, static_folder=frontend_path, static_url_path="")
 
@@ -11,7 +11,7 @@ app = Flask(__name__, static_folder=frontend_path, static_url_path="")
 def index():
     return send_from_directory(app.static_folder, "index.html")
 
-# API endpoint → fetch channels
+# API → fetch channels
 @app.route("/fetch_channels")
 def fetch():
     portal = request.args.get("portal", "").strip()
